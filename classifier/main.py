@@ -29,7 +29,7 @@ def transData(x:torch.Tensor):
 
 
 train_data = datasets.Caltech256(
-    root="E:\ZYuZe\codes\myProjects\pytorch_Test\yolo\classifier\data",
+    root="data",
     transform=Compose([
         Resize((224, 224)),
         ToTensor(),
