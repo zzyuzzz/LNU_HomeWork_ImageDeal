@@ -115,7 +115,7 @@ loss_fn = nn.CrossEntropyLoss()
 scheduler = torch.optim.lr_scheduler.PolynomialLR(optimizer=optimizer, power=4)
 
 # %%
-epsi = 10
+epsi = 100
 
 for i in range(epsi):
     print(f"第{i}次迭代")
