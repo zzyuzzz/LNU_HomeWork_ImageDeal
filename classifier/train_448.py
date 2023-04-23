@@ -33,7 +33,7 @@ def transData(x:torch.Tensor):
 train_data = datasets.Caltech256(
     root="data",
     transform=Compose([
-        Resize((224, 224)),
+        Resize((448, 448)),
         ToTensor(),
         Lambda(transData)
 
@@ -56,7 +56,7 @@ print(training_data[1][0])
 # print(testing_data[1][0])
 
 # %%
-batch_size = 64
+batch_size = 32
 
 train_dataloader = DataLoader(training_data, batch_size=batch_size, shuffle=True)
 test_dataloader = DataLoader(testing_data, batch_size=batch_size, shuffle=True)
@@ -68,10 +68,13 @@ device = (
     else 'cpu'
 )
 
+
+model = Darknet19(448).to(device=device)
 if os.path.exists('saved_model.pth'):
-    model = torch.load('saved_model.pth')
+    model_t = torch.load('saved_model.pth')
+    model.layers.load_state_dict(model_t.layers.state_dict())
 else:
-    model = Darknet19().to(device=device)
+    raise ValueError("请先训练224大小的网络!!!")
 print(model)
 
 # %%
@@ -122,13 +125,13 @@ def test(model:nn.Module, loss_fn, data:DataLoader, iter_num = 0):
         print(f"total loss:{total_loss:.9}, Accuracy:{correct/data_len:.9}")
 
 # %%
-optimizer = torch.optim.SGD(model.parameters(), lr=1e-1, weight_decay=0.0005, momentum=0.9)
+optimizer = torch.optim.SGD(model.parameters(), lr=1e-3, weight_decay=0.0005, momentum=0.9)
 loss_fn = nn.CrossEntropyLoss()
 
 
 
 # %%
-epsi = 30
+epsi = 10
 scheduler = torch.optim.lr_scheduler.PolynomialLR(optimizer=optimizer, power=4, total_iters=epsi, verbose=True)
 
 for i in range(epsi):
@@ -142,7 +145,7 @@ for i in range(epsi):
     torch.save(model, 'saved_model.pth')
 
 
-print('Done 224')
+print('Done 448')
 
 
 # saved_model224 = 'saved_model.pth'

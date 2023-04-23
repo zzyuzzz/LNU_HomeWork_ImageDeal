@@ -38,7 +38,7 @@ class ConvWithPooling(nn.Module):
 
 
 class Darknet19(nn.Module):
-    def __init__(self) -> None:
+    def __init__(self, size=224) -> None:
         super().__init__()
         self.layers = nn.Sequential(
             ConvWithPooling(1, [3], [32], [3], [1], ['same'], 2, 2),
@@ -58,7 +58,7 @@ class Darknet19(nn.Module):
 
         self.layers1 = nn.Sequential(
             nn.Conv2d(1024, 257, 1, padding='same'),
-            nn.AvgPool2d((7, 7)),
+            nn.AvgPool2d((7, 7) if size==224 else (14, 14)),
         )
         
     def forward(self, x):
