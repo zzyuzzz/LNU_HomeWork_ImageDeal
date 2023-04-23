@@ -120,9 +120,12 @@ def test(model:nn.Module, loss_fn, data:DataLoader, iter_num = 0):
                 total_loss = (total_loss * batch + loss.item()) / (batch + 1)
                 
                 writer.add_scalar('Loss/test', loss.item(), batch + iter_num*(data_len//data.batch_size))
-                writer.add_scalar('Accracy/test', correct_t, batch + iter_num*(data_len//data.batch_size))
+                writer.add_scalar('Accracy/test', correct_t/data.batch_size, batch + iter_num*(data_len//data.batch_size))
 
         print(f"total loss:{total_loss:.9}, Accuracy:{correct/data_len:.9}")
+
+        writer.add_scalar('total/loss', total_loss, iter_num)
+        writer.add_scalar('total/Accracy', correct/data_len, iter_num)
 
 # %%
 optimizer = torch.optim.SGD(model.parameters(), lr=1e-3, weight_decay=0.0005, momentum=0.9)
