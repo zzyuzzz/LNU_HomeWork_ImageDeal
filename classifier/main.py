@@ -1,7 +1,7 @@
 # %%
 import torch 
 import torch.nn as nn
-from classifier import Darknet19
+from classifier import Darknet19, BNDarknet19
 # import torch_npu
 import numpy as np
 import matplotlib.pyplot as plt
@@ -68,10 +68,11 @@ device = (
     else 'cpu'
 )
 
-if os.path.exists('saved_model.pth'):
-    model = torch.load('saved_model.pth')
+saved_model = 'saved_modelBN.pth'
+if os.path.exists(saved_model):
+    model = torch.load(saved_model)
 else:
-    model = Darknet19().to(device=device)
+    model = BNDarknet19().to(device=device)
 print(model)
 
 # %%
@@ -84,6 +85,8 @@ def train(model:nn.Module, optimizer:torch.optim.Optimizer, loss_fn, data:DataLo
     with tqdm(enumerate(data), total=data_len//data.batch_size) as pbar:
         for batch, (X, y) in pbar:
             # y = torch.unsqueeze(y, -1)
+            X = torch.squeeze(X, 0) if len(X.shape) < 3 else X
+            y = torch.squeeze(y, 0) if len(y.shape) < 2 else y
             X,y = X.to(device), y.to(device)
             pred = model(X)
             loss = loss_fn(pred, y)
@@ -105,6 +108,8 @@ def test(model:nn.Module, loss_fn, data:DataLoader, iter_num = 0):
         total_loss, correct = 0, 0
         with tqdm(enumerate(data), total=data_len//data.batch_size) as pbar:
             for batch, (X, y) in pbar:
+                X = torch.squeeze(X, 0) if len(X.shape) < 3 else X
+                y = torch.squeeze(y, 0) if len(y.shape) < 2 else y
                 X,y = X.to(device), y.to(device)
                 pred = model(X)
                 loss = loss_fn(pred, y)
@@ -123,6 +128,7 @@ def test(model:nn.Module, loss_fn, data:DataLoader, iter_num = 0):
 
         writer.add_scalar('total/loss', total_loss, iter_num)
         writer.add_scalar('total/Accracy', correct/data_len, iter_num)
+
 # %%
 optimizer = torch.optim.SGD(model.parameters(), lr=1e-1, weight_decay=0.0005, momentum=0.9)
 loss_fn = nn.CrossEntropyLoss()
@@ -130,7 +136,7 @@ loss_fn = nn.CrossEntropyLoss()
 
 
 # %%
-epsi = 30
+epsi = 5
 scheduler = torch.optim.lr_scheduler.PolynomialLR(optimizer=optimizer, power=4, total_iters=epsi, verbose=True)
 
 for i in range(epsi):
@@ -141,7 +147,7 @@ for i in range(epsi):
 
     print('starting save model')
 
-    torch.save(model, 'saved_model.pth')
+    torch.save(model, saved_model)
 
 
 print('Done 224')
